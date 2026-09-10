@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Online MCQ Test Portal - Final Fixed</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eef7ff,#fff5fb);color:#172033}
+header{background:linear-gradient(90deg,#4f46e5,#7c3aed);color:#fff;padding:24px 16px;text-align:center}
+header h1{margin:0 0 7px;font-size:28px}
+.container{max-width:1100px;margin:auto;padding:18px}
+.hero,.card,.dashboard{background:#fff;border-radius:18px;padding:20px;box-shadow:0 8px 28px #00000012;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
+.roleCard{cursor:pointer;transition:.2s}.roleCard:hover{transform:translateY(-2px)}
+.student{border-top:5px solid #2563eb}.teacher{border-top:5px solid #f59e0b}.admin{border-top:5px solid #ef4444}
+.hidden{display:none!important}
+.input,select,textarea{width:100%;padding:12px;border:1px solid #d7dce5;border-radius:10px;margin:6px 0 12px;font-size:15px;background:#fff}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{border:0;border-radius:10px;padding:11px 16px;font-size:15px;font-weight:bold;cursor:pointer;touch-action:manipulation;background:#4f46e5;color:#fff}
+button:hover{opacity:.9}.secondary{background:#64748b}.success{background:#16a34a}.warning{background:#d97706}.danger{background:#dc2626}
+.msg{padding:10px;border-radius:10px;margin:10px 0;background:#f1f5f9}.error{background:#fee2e2;color:#991b1b}.ok{background:#dcfce7;color:#166534}
+.muted{color:#667085;font-size:13px}.topbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:#f8fafc;border-radius:14px;padding:16px;text-align:center}.stat b{font-size:26px;display:block}
+.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}
+.question{background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin:12px 0}
+.option{display:block;padding:10px;margin:7px 0;background:#fff;border:1px solid #e5e7eb;border-radius:10px}
+.timer{font-size:21px;font-weight:bold;color:#dc2626}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:12px;font-weight:bold}
+.recaptcha{min-height:78px;margin:6px 0}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{background:#e5e7eb;color:#111827}.tabs button.active{background:#4f46e5;color:#fff}
+.qRow{border:1px solid #e5e7eb;border-radius:14px;padding:14px;margin:10px 0}
+.optionGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:650px){.optionGrid{grid-template-columns:1fr}header h1{font-size:23px}}
+</style>
+</head>
+<body>
+<header><h1>📚 Smart Online MCQ Test Portal</h1><div>Student • Teacher • Admin | Instant Result</div></header>
+
+<div class="container">
+<section id="home" class="hero">
+<h2>Online Test Portal</h2>
+<p>ધોરણ 10 માટે ઓનલાઈન MCQ ટેસ્ટ, Timer અને તરત Result.</p>
+<div class="grid">
+<div class="card roleCard student" onclick="openLogin('student')"><h3>🎓 Student</h3><p>Mobile Number + OTPથી Account બનાવો અને Test આપો.</p><button>Student Login</button></div>
+<div class="card roleCard teacher" onclick="openLogin('teacher')"><h3>👨‍🏫 Teacher</h3><p>પહેલા Teacher Signup કરો, પછી Mobile OTPથી Login કરો.</p><button class="warning">Teacher Login / Signup</button></div>
+<div class="card roleCard admin" onclick="openLogin('admin')"><h3>🛠️ Admin</h3><p>Teachers, Students, Tests અને Resultsનું સંચાલન.</p><button class="danger">Admin Login</button></div>
+</div>
+</section>
+
+<section id="loginPanel" class="card hidden">
+<div class="topbar"><h2 id="loginTitle">Login</h2><button class="secondary" onclick="goHome()">← Home</button></div>
+
+<div id="phoneLogin" class="hidden">
+<div id="teacherModeButtons" class="actions hidden" style="margin-bottom:12px">
+<button type="button" class="warning" onclick="teacherMode('login')">👨‍🏫 Teacher Login</button>
+<button type="button" class="secondary" onclick="teacherMode('signup')">📝 Teacher Signup</button>
+</div>
+<div id="teacherModeTitle" class="card hidden" style="padding:12px;margin-bottom:12px"><b id="teacherModeText">Teacher Login</b></div>
+<label id="phoneNameLabel">નામ</label>
+<input id="phoneName" class="input" placeholder="તમારું નામ">
+<label>Mobile Number</label>
+<input id="userPhone" class="input" placeholder="9876543210" inputmode="tel">
+<div id="recaptcha-container" class="recaptcha"></div>
+<div class="actions"><button onclick="sendOTP()">📱 Send OTP</button></div>
+<div id="otpBox" class="hidden">
+<label>OTP</label>
+<input id="userOtp" class="input" placeholder="6 digit OTP" inputmode="numeric">
+<button class="success" onclick="verifyOTP()">Verify OTP & Login</button>
+</div>
+<div id="phoneMsg" class="msg"></div>
+<p id="phoneHelp" class="muted"></p>
+</div>
+
+<div id="adminLogin" class="hidden">
+<label>Admin Email</label><input id="adminEmail" class="input" type="email" placeholder="admin@example.com">
+<label>Password</label><input id="adminPassword" class="input" type="password" placeholder="Password">
+<button onclick="adminSignIn()">🔐 Admin Login</button>
+<div id="adminLoginMsg" class="msg"></div>
+<p class="muted">Admin account Firebaseમાં બનાવેલું હોવું જોઈએ.</p>
+</div>
+</section>
+
+<section id="studentDash" class="dashboard hidden">
+<div class="topbar"><div><h2>🎓 Student Dashboard</h2><span id="studentWelcome" class="badge"></span></div><button class="danger" onclick="logout()">Logout</button></div>
+<div id="studentTests"></div><div id="studentTestArea" class="hidden"></div>
+</section>
+
+<section id="teacherDash" class="dashboard hidden">
+<div class="topbar"><div><h2>👨‍🏫 Teacher Dashboard</h2><span id="teacherWelcome" class="badge"></span></div><button class="danger" onclick="logout()">Logout</button></div>
+<div class="tabs"><button class="active" onclick="teacherTab('create',this)">➕ Create Test</button><button onclick="teacherTab('tests',this)">📚 My Tests</button><button onclick="teacherTab('results',this)">📊 Results</button></div>
+<div id="teacherCreate">
+<div class="card"><h3>નવી Test બનાવો</h3>
+<input id="testTitle" class="input" placeholder="Test Title">
+<div class="optionGrid"><input id="testStd" class="input" placeholder="ધોરણ 10"><input id="testSubject" class="input" placeholder="વિષય વિજ્ઞાન"></div>
+<div class="optionGrid"><input id="testMinutes" class="input" type="number" value="30" min="1" placeholder="Minutes"><input id="testPass" class="input" type="number" value="0" min="0" placeholder="Pass Marks"></div>
+<div id="questionBuilder"></div>
+<div class="actions"><button class="secondary" onclick="addQuestion()">+ Question</button><button class="success" onclick="saveTest()">💾 Save Test</button></div>
+<div id="teacherMsg" class="msg"></div></div>
+</div>
+<div id="teacherTests" class="hidden"></div><div id="teacherResults" class="hidden"></div>
+</section>
+
+<section id="adminDash" class="dashboard hidden">
+<div class="topbar"><div><h2>🛠️ Admin Dashboard</h2><span id="adminWelcome" class="badge"></span></div><button class="danger" onclick="logout()">Logout</button></div>
+<div class="stats" id="adminStats"></div>
+<div class="tabs"><button class="active" onclick="adminTab('teachers',this)">👨‍🏫 Teachers</button><button onclick="adminTab('students',this)">🎓 Students</button><button onclick="adminTab('tests',this)">📚 Tests</button><button onclick="adminTab('results',this)">📊 Results</button></div>
+<div id="adminTeachers">
+<div class="card"><h3>Admin દ્વારા Teacher Account બનાવો</h3><p class="muted">આ હવે optional છે. Teacher પોતે પણ Mobile OTPથી account બનાવી શકે છે.</p>
+<div class="optionGrid"><input id="newTeacherName" class="input" placeholder="Teacher Name"><input id="newTeacherEmail" class="input" type="email" placeholder="Teacher Email"></div>
+<input id="newTeacherPassword" class="input" type="password" placeholder="Temporary Password (6+ characters)">
+<button class="success" onclick="createTeacher()">Create Teacher</button>
+<div id="adminMsg" class="msg"></div></div>
+<div class="card"><h3>Admin Account બનાવો</h3>
+<div class="optionGrid"><input id="newAdminName" class="input" placeholder="Admin Name"><input id="newAdminEmail" class="input" type="email" placeholder="Admin Email"></div>
+<input id="newAdminPassword" class="input" type="password" placeholder="Password (6+ characters)">
+<button class="danger" onclick="createAdmin()">Create Admin</button></div>
+<div id="teacherList"></div>
+</div>
+<div id="adminStudents" class="hidden"></div><div id="adminTests" class="hidden"></div><div id="adminResults" class="hidden"></div>
+</section>
+</div>
+<div id="jsStatus" class="msg ok" style="display:none">Portal ready</div><footer style="text-align:center;padding:25px;color:#667085">© Smart Online MCQ Test Portal</footer>
+
+
+<script>
+// UI must work even if Firebase fails to load.
+window.openLogin=function(role){
+ currentRole=role; document.getElementById('home').classList.add('hidden'); document.getElementById('loginPanel').classList.remove('hidden');
+ document.getElementById('loginTitle').textContent=role==='student'?'🎓 Student Login / Signup':role==='teacher'?'👨‍🏫 Teacher Login / Signup':'🛠️ Admin Login';
+ document.getElementById('phoneLogin').classList.toggle('hidden',role==='admin'); document.getElementById('adminLogin').classList.toggle('hidden',role!=='admin');
+ document.getElementById('teacherModeButtons').classList.toggle('hidden',role!=='teacher'); document.getElementById('teacherModeTitle').classList.toggle('hidden',role!=='teacher');
+ if(role==='teacher' && window.teacherMode) window.teacherMode('login');
+ document.getElementById('phoneNameLabel').textContent=role==='teacher'?'Teacher Name':'Student Name';
+ document.getElementById('phoneName').placeholder=role==='teacher'?'Teacherનું નામ':'Studentનું નામ';
+ if(window.setupRecaptcha) window.setupRecaptcha();
+};
+window.goHome=function(){document.querySelectorAll('.dashboard').forEach(x=>x.classList.add('hidden'));document.getElementById('loginPanel').classList.add('hidden');document.getElementById('home').classList.remove('hidden');};
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+
+const firebaseConfig={
+apiKey:"AIzaSyCsF20NQAOn9vbx_wcMtMxFSyTekIm0cO8",
+authDomain:"online-test-portal-new.firebaseapp.com",
+databaseURL:"https://online-test-portal-new-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId:"online-test-portal-new",
+storageBucket:"online-test-portal-new.firebasestorage.app",
+messagingSenderId:"141954006604",
+appId:"1:141954006604:web:841d4eb27d9546aac77ee9",
+measurementId:"G-6Q30V6BFJ8"
+};
+let app=null,auth=null,db=null,secondaryApp=null,secondaryAuth=null;
+let firebaseReady=false;
+function ensureFirebase(){
+ if(firebaseReady) return true;
+ try{
+  if(typeof firebase==='undefined') throw new Error('Firebase SDK load થયું નથી.');
+  app=firebase.apps.length?firebase.app():firebase.initializeApp(firebaseConfig);
+  auth=firebase.auth(app); db=firebase.database(app);
+  secondaryApp=firebase.apps.find(a=>a.name==='staffCreator') || firebase.initializeApp(firebaseConfig,'staffCreator');
+  secondaryAuth=firebase.auth(secondaryApp); firebaseReady=true;
+  if(typeof onAuthStateChanged==='function') 
+</script>
+</body>
+</html>
